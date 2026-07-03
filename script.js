@@ -1200,10 +1200,36 @@ function publishProject(){
   const b=getB();
   if(!b.pcbImgData){ toast('⚠ Carregue uma imagem PCB antes de publicar'); return; }
   if(!b.comps.length){ toast('⚠ Adicione ao menos um componente'); return; }
-  // Pre-fill token if saved
   const saved=localStorage.getItem('gh_pub_token')||'';
-  document.getElementById('pubToken').value=saved;
-  document.getElementById('pubModal').classList.add('show');
+  if(saved){
+    // Token já salvo → publica direto sem modal
+    doPublishWithToken(saved);
+  } else {
+    // Primeira vez → pede o token
+    document.getElementById('pubToken').value='';
+    document.getElementById('pubModal').classList.add('show');
+  }
+}
+
+async function doPublishWithToken(token){
+  toast('⏳ Publicando relatório...');
+  const b=getB();
+  const data={
+    boardName:b.name,
+    exportedAt:new Date().toLocaleString('pt-BR'),
+    comps:JSON.parse(JSON.stringify(b.comps)),
+    pcbImg:b.pcbImgData
+  };
+  const html=generateViewerHTML(data);
+  try{
+    await pushReportToGitHub(html,token);
+  }catch(err){
+    toast('❌ '+err.message);
+    // Token inválido → remove e pede novo
+    localStorage.removeItem('gh_pub_token');
+    document.getElementById('pubToken').value='';
+    document.getElementById('pubModal').classList.add('show');
+  }
 }
 
 function closePubModal(){

@@ -350,6 +350,9 @@
       <button class="abtn abtn-blue" onclick="copyReportUrl()">📋 Copiar Link</button>
       <button class="abtn abtn-gray" onclick="closeSuccessModal()">✕ FECHAR</button>
     </div>
+    <div style="text-align:center;margin-top:6px;">
+      <span style="font-size:.55rem;color:var(--dim);cursor:pointer;text-decoration:underline;" onclick="closeSuccessModal();localStorage.removeItem('gh_pub_token');document.getElementById('pubToken').value='';document.getElementById('pubModal').classList.add('show')">🔑 Trocar Token</span>
+    </div>
   </div>
 </div>
 
