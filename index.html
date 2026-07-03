@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>PCBA Heatmap v7</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo">🔥</div>
+  <div>
+    <h1>PCBA Heatmap Analyzer v7</h1>
+    <p style="font-size:.52rem;color:var(--dim);font-family:'Share Tech Mono',monospace;">THERMAL FAILURE ANALYSIS</p>
+  </div>
+  <div class="hbadges">
+    <span class="hbadge hb-blue" id="hbBoards">1 BOARD</span>
+    <span class="hbadge hb-red" id="hbFails">0 FALHAS</span>
+  </div>
+</header>
+
+<div class="tab-row" id="tabRow">
+  <button class="tab-add" onclick="addBoardTab()" title="Novo Board">＋</button>
+</div>
+
+<div class="main">
+
+  <!-- ═══ LEFT ═══ -->
+  <div class="left">
+
+    <div class="sec">
+      <div class="sec-h">📁 Arquivo</div>
+      <div class="sec-b">
+        <label class="abtn abtn-green" for="fPCB">🖼 Abrir Imagem</label>
+        <input type="file" id="fPCB" accept="image/*" onchange="loadPCB(event)">
+        <button class="abtn abtn-blue" onclick="saveProject()">💾 Salvar Projeto</button>
+        <button class="abtn abtn-gray" onclick="loadProject()">📂 Carregar Projeto</button>
+        <input type="file" id="fProj" accept=".json" onchange="loadProjectFile(event)">
+        <label class="abtn abtn-gray" for="fCSV">📥 Importar CSV</label>
+        <input type="file" id="fCSV" accept=".csv,.txt" onchange="importCSV(event)">
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h">✏ Ferramenta de Desenho</div>
+      <div class="sec-b">
+        <div class="radio-group" id="toolGroup">
+
+          <div class="ri active" data-tool="rect" onclick="setTool('rect')">
+            <input type="radio" name="tool" checked>
+            <span class="ri-lbl">
+              <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="1"/></svg>
+              Retângulo
+            </span>
+          </div>
+
+          <div class="ri" data-tool="square" onclick="setTool('square')">
+            <input type="radio" name="tool">
+            <span class="ri-lbl">
+              <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/></svg>
+              Quadrado
+            </span>
+          </div>
+
+          <div class="ri" data-tool="circle" onclick="setTool('circle')">
+            <input type="radio" name="tool">
+            <span class="ri-lbl">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>
+              Círculo
+            </span>
+          </div>
+
+          <div class="ri" data-tool="diamond" onclick="setTool('diamond')">
+            <input type="radio" name="tool">
+            <span class="ri-lbl">
+              <svg viewBox="0 0 24 24"><polygon points="12,2 22,12 12,22 2,12"/></svg>
+              Losango
+            </span>
+          </div>
+
+          <div class="ri" data-tool="triangle" onclick="setTool('triangle')">
+            <input type="radio" name="tool">
+            <span class="ri-lbl">
+              <svg viewBox="0 0 24 24"><polygon points="12,3 22,21 2,21"/></svg>
+              Triângulo
+            </span>
+          </div>
+
+          <div class="ri" data-tool="move" onclick="setTool('move')">
+            <input type="radio" name="tool">
+            <span class="ri-lbl">
+              <svg viewBox="0 0 24 24"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M12 12v.01" stroke-linecap="round"/></svg>
+              Mover / Selecionar
+            </span>
+          </div>
+
+        </div>
+        <div style="background:#f4f6f9;border-radius:4px;padding:5px 7px;font-size:.54rem;color:var(--dim);font-family:'Share Tech Mono',monospace;line-height:1.8;">
+          🖱 <b>ESQUERDO</b>: Desenhar / Mover<br>
+          🖱 <b>DIREITO</b>: Arrastar imagem<br>
+          🖱 <b>RODA</b>: Zoom no cursor<br>
+          ⌨ <b>ESC</b>: Cancelar | <b>DEL</b>: Apagar
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h">🎨 Cor da Borda</div>
+      <div class="sec-b">
+        <div class="cgrid" id="colorGrid">
+          <div class="csw active" style="background:#ff0000" data-c="#ff0000" onclick="setColor('#ff0000')"></div>
+          <div class="csw" style="background:#ffff00" data-c="#ffff00" onclick="setColor('#ffff00')"></div>
+          <div class="csw" style="background:#00cc44" data-c="#00cc44" onclick="setColor('#00cc44')"></div>
+          <div class="csw" style="background:#1a73e8" data-c="#1a73e8" onclick="setColor('#1a73e8')"></div>
+          <div class="csw" style="background:#ff8800" data-c="#ff8800" onclick="setColor('#ff8800')"></div>
+          <div class="csw" style="background:#cc00cc" data-c="#cc00cc" onclick="setColor('#cc00cc')"></div>
+          <div class="csw" style="background:#00cccc" data-c="#00cccc" onclick="setColor('#00cccc')"></div>
+          <div class="csw" style="background:#ffffff;border:1px solid #bbb;" data-c="#ffffff" onclick="setColor('#ffffff')"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:.58rem;color:var(--dim);font-family:'Share Tech Mono',monospace;">CUSTOM:</span>
+          <input type="color" id="customColor" value="#ff0000" oninput="setColor(this.value)" style="width:34px;height:22px;border:1px solid var(--border);border-radius:4px;cursor:pointer;padding:1px;">
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h">🌡 Legenda — Calor por Falhas</div>
+      <div class="sec-b">
+        <div class="lgbar"></div>
+        <div class="lglbls"><span>0F</span><span>3F</span><span>7F</span><span>12F</span><span>15F+</span></div>
+        <div style="font-size:.54rem;color:var(--dim);font-family:'Share Tech Mono',monospace;line-height:1.5;">O heatmap é gerado pela<br>quantidade de falhas.</div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h">≡ Componentes</div>
+      <div class="sec-b">
+        <div class="clist" id="cList"><div style="color:var(--dim);font-size:.62rem;text-align:center;padding:6px;">Nenhum componente</div></div>
+        <button class="abtn abtn-red" onclick="clearAll()">✕ Limpar Tudo</button>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h">↓ Exportar</div>
+      <div class="sec-b">
+        <button class="abtn abtn-gray" onclick="exportCSV()">📊 Export CSV</button>
+        <button class="abtn abtn-gray" onclick="exportPNG()">🖼 Export PNG</button>
+        <button class="abtn abtn-blue" onclick="publishProject()">📤 Publicar Relatório</button>
+      </div>
+    </div>
+
+  </div><!-- /left -->
+
+  <!-- ═══ CENTER ═══ -->
+  <div class="center">
+    <div class="ctb">
+      <button class="tbtn on" id="tbHeat" onclick="toggleHeat()">🌡 HEATMAP</button>
+      <button class="tbtn" onclick="zIn()">＋ ZOOM</button>
+      <button class="tbtn" onclick="zOut()">－ ZOOM</button>
+      <button class="tbtn" onclick="resetV()">⟳ RESET</button>
+      <button class="tbtn" id="tbCmp" onclick="toggleCompare()" style="color:#1e9952;border-color:rgba(30,153,82,.4);">⚖ COMPARAR</button>
+      <span class="mpill" id="mPill">MODO: RETÂNGULO</span>
+
+      <!-- FILTER by remarks -->
+      <div class="filter-wrap" id="filterWrap">
+        <div class="filter-box" id="filterBox" onclick="toggleFilterDropdown()">
+          <span class="filter-icon">⚡</span>
+          <span class="filter-label" id="filterLabel">FILTRO: TODOS</span>
+          <span class="filter-arrow" id="filterArrow">▾</span>
+        </div>
+        <div class="filter-dropdown" id="filterDropdown">
+          <div class="fdd-item active" data-val="" onclick="setFilter('')">
+            <span class="fdd-dot" style="background:#7a8a9e"></span>
+            <span>Todos os componentes</span>
+            <span class="fdd-count" id="fddCountAll">—</span>
+          </div>
+          <div id="fddItems"></div>
+        </div>
+      </div>
+    </div>
+    <div class="cwrap" id="cwrap">
+      <canvas id="mc"></canvas>
+      <canvas id="ov"></canvas>
+      <div class="ohint" id="ohint">
+        <div class="oh-icon">📋</div>
+        <div class="oh-txt">Abra uma imagem PCB para começar</div>
+        <label class="abtn abtn-green" for="fPCB" style="width:170px;cursor:pointer;pointer-events:all;">🖼 Abrir Imagem</label>
+      </div>
+      <div class="xyhint" id="xyhint">X:— Y:—</div>
+      <div class="filter-badge" id="filterBadge">⚡ FILTRO ATIVO</div>
+    </div>
+
+    <!-- ══ COMPARE MODE ══ -->
+    <div class="cmp-wrap" id="cmpWrap">
+      <!-- LEFT: ANTES -->
+      <div class="cmp-side" id="cmpLeft">
+        <div class="cmp-label antes">📷 ANTES
+          <button onclick="clearCmpSlot('A')" title="Limpar e escolher outra foto" style="margin-left:auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:4px;padding:2px 8px;font-size:.6rem;cursor:pointer;font-family:'Share Tech Mono',monospace;letter-spacing:.5px;">🗑 LIMPAR</button>
+        </div>
+        <canvas id="cmpMcA"></canvas>
+        <div class="cmp-ohint" id="cmpHintA">
+          <div style="font-size:28px;opacity:.2;">📋</div>
+          <div style="font-size:.72rem;color:var(--dim);text-align:center;line-height:1.5;">Snapshot <b>ANTES</b><br>da intervenção</div>
+          <button class="abtn abtn-blue" onclick="snapFromCurrent('A')" style="width:170px;font-size:.65rem;">📸 Capturar Board Atual</button>
+          <label class="abtn abtn-gray" for="fCmpA" style="width:170px;font-size:.65rem;cursor:pointer;">🖼 Carregar Imagem</label>
+          <input type="file" id="fCmpA" accept="image/*" style="display:none" onchange="loadCmpImg(event,'A')">
+        </div>
+        <div class="cmp-badge" id="cmpBadgeA"></div>
+        <div class="cmp-stats" id="cmpStatsA" style="display:none"></div>
+      </div>
+      <!-- DIVIDER -->
+      <div class="cmp-divider" id="cmpDivider"></div>
+      <!-- RIGHT: DEPOIS -->
+      <div class="cmp-side" id="cmpRight">
+        <div class="cmp-label depois">✅ DEPOIS
+          <button onclick="clearCmpSlot('B')" title="Limpar e escolher outra foto" style="margin-left:auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:4px;padding:2px 8px;font-size:.6rem;cursor:pointer;font-family:'Share Tech Mono',monospace;letter-spacing:.5px;">🗑 LIMPAR</button>
+        </div>
+        <canvas id="cmpMcB"></canvas>
+        <div class="cmp-ohint" id="cmpHintB">
+          <div style="font-size:28px;opacity:.2;">📋</div>
+          <div style="font-size:.72rem;color:var(--dim);text-align:center;line-height:1.5;">Snapshot <b>DEPOIS</b><br>da intervenção</div>
+          <button class="abtn abtn-green" onclick="snapFromCurrent('B')" style="width:170px;font-size:.65rem;">📸 Capturar Board Atual</button>
+          <label class="abtn abtn-gray" for="fCmpB" style="width:170px;font-size:.65rem;cursor:pointer;">🖼 Carregar Imagem</label>
+          <input type="file" id="fCmpB" accept="image/*" style="display:none" onchange="loadCmpImg(event,'B')">
+        </div>
+        <div class="cmp-badge" id="cmpBadgeB"></div>
+        <div class="cmp-stats" id="cmpStatsB" style="display:none"></div>
+      </div>
+    </div><!-- /cmpWrap -->
+  </div>
+
+  <!-- ═══ RIGHT ═══ -->
+  <div class="right">
+    <div class="rs">
+
+      <div class="rsec">
+        <div class="rh">📷 FOTO DO COMPONENTE</div>
+        <div class="rb">
+          <!-- Component info header — shown when a component is selected -->
+          <div class="photo-info" id="photoInfo">
+            <div class="photo-info-ref">
+              <div class="sev-dot" id="photoSevDot"></div>
+              <span id="photoInfoRef">—</span>
+            </div>
+            <div class="photo-info-rem" id="photoInfoRem"></div>
+            <div class="photo-info-stats" id="photoInfoStats"></div>
+          </div>
+          <div class="photobox" id="photoBox" onclick="clickPhoto()" style="border-radius:0 0 7px 7px;">
+            <img id="photoImg" alt="">
+            <div class="phe" id="phe">
+              <div class="phe-icon">📷</div>
+              <div id="pheTxt">Selecione um componente<br>para adicionar foto</div>
+            </div>
+            <div class="phchange" id="phchange">🔄 TROCAR</div>
+          </div>
+          <input type="file" id="fPhoto" accept="image/*" onchange="loadPhotoFile(event)">
+          <div style="font-size:.53rem;color:var(--dim);text-align:center;font-family:'Share Tech Mono',monospace;">💡 Ctrl+V para colar foto</div>
+        </div>
+      </div>
+
+      <div class="rsec">
+        <div class="rh">📊 MATRIZ DE FALHAS</div>
+        <div class="rb"><div id="matrixDiv"><div class="nosel">Sem componentes</div></div></div>
+      </div>
+
+      <div class="rsec">
+        <div class="rh">◈ DETALHE</div>
+        <div class="rb"><div id="detailDiv"><div class="nosel">← Selecione um componente</div></div></div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ═══ POPUP (aparece após desenhar forma) ═══ -->
+<div class="pov" id="pov">
+  <div class="popup">
+    <h3>📌 Identificar Componente</h3>
+
+    <div>
+      <label class="plbl">REFERENCE DESIGNATOR *</label>
+      <input class="pinp" id="pRef" placeholder="Ex: R48, CN3, U15..." autocomplete="off">
+    </div>
+
+    <div class="pinp-row">
+      <div>
+        <label class="plbl">Nº FALHAS *</label>
+        <input class="pinp big" id="pFails" type="number" min="0" value="0" placeholder="0">
+      </div>
+      <div>
+        <label class="plbl">TEMP (°C)</label>
+        <input class="pinp" id="pTemp" type="number" step="0.5" placeholder="auto">
+      </div>
+    </div>
+
+    <div>
+      <label class="plbl">SEVERIDADE</label>
+      <div class="sev-row">
+        <div class="sev-btn L" onclick="selSev('L')">LOW</div>
+        <div class="sev-btn M" onclick="selSev('M')">MED</div>
+        <div class="sev-btn H active" onclick="selSev('H')">HIGH</div>
+      </div>
+    </div>
+
+    <div>
+      <label class="plbl">REMARKS</label>
+      <input class="pinp" id="pRemarks" placeholder="Descrição do defeito...">
+    </div>
+
+    <div class="popup-btns">
+      <button class="abtn abtn-gray" onclick="cancelPopup()">✕ CANCELAR</button>
+      <button class="abtn abtn-blue" id="confirmBtn" onclick="confirmPopup()">✔ CONFIRMAR</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
