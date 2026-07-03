@@ -877,7 +877,7 @@ function loadPCB(e){
   const f=e.target.files[0]; if(!f) return;
   const reader=new FileReader();
   reader.onload=ri=>{
-    const dataUrl=ri.result;
+    const dataUrl=ri.target.result;
     const img=new Image();
     img.onload=()=>{
       if(_newBoard){
