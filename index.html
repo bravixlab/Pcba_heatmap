@@ -317,6 +317,42 @@
   </div>
 </div>
 
+<!-- ═══ PUBLISH MODAL ═══ -->
+<div class="pov" id="pubModal">
+  <div class="popup">
+    <h3>📤 Publicar Relatório Online</h3>
+    <div style="font-size:.68rem;color:var(--dim);line-height:1.7;margin-bottom:2px;">
+      Será publicado em:<br>
+      <span style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--accent)">bravixlab.github.io/Pcba_heatmap/report.html</span>
+    </div>
+    <div>
+      <label class="plbl">GITHUB TOKEN (salvo no browser)</label>
+      <input class="pinp" id="pubToken" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+      <div style="font-size:.53rem;color:var(--dim);margin-top:3px;line-height:1.5;">
+        Gere em: GitHub → Settings → Developer Settings<br>→ Personal Access Tokens (classic) → scope: <b>repo</b>
+      </div>
+    </div>
+    <div class="popup-btns">
+      <button class="abtn abtn-gray" onclick="closePubModal()">✕ CANCELAR</button>
+      <button class="abtn abtn-blue" id="confirmPubBtn" onclick="doPublish()">📤 PUBLICAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SUCCESS MODAL ═══ -->
+<div class="pov" id="successModal">
+  <div class="popup">
+    <h3>✅ Relatório Publicado!</h3>
+    <div style="font-size:.7rem;color:var(--dim);margin-bottom:8px;">Compartilhe com o time de engenharia:</div>
+    <div id="successUrl" style="font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--accent);background:#e8f0fe;border:1.5px solid #c5d6f8;border-radius:6px;padding:9px 11px;word-break:break-all;cursor:pointer;" onclick="copyReportUrl()"></div>
+    <div style="font-size:.57rem;color:var(--dim);margin-top:5px;">⏱ Aguarde ~1 min para atualizar no GitHub Pages.</div>
+    <div class="popup-btns">
+      <button class="abtn abtn-blue" onclick="copyReportUrl()">📋 Copiar Link</button>
+      <button class="abtn abtn-gray" onclick="closeSuccessModal()">✕ FECHAR</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="script.js"></script>

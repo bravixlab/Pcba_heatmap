@@ -1194,12 +1194,33 @@ function importCSV(e){
 }
 
 // ════════════════════════════════════════════
-// PUBLISH — gera HTML viewer read-only
+// PUBLISH — publica no GitHub Pages via API
 // ════════════════════════════════════════════
 function publishProject(){
   const b=getB();
   if(!b.pcbImgData){ toast('⚠ Carregue uma imagem PCB antes de publicar'); return; }
   if(!b.comps.length){ toast('⚠ Adicione ao menos um componente'); return; }
+  // Pre-fill token if saved
+  const saved=localStorage.getItem('gh_pub_token')||'';
+  document.getElementById('pubToken').value=saved;
+  document.getElementById('pubModal').classList.add('show');
+}
+
+function closePubModal(){
+  document.getElementById('pubModal').classList.remove('show');
+  document.getElementById('confirmPubBtn').textContent='📤 PUBLICAR';
+  document.getElementById('confirmPubBtn').disabled=false;
+}
+
+async function doPublish(){
+  const token=document.getElementById('pubToken').value.trim();
+  if(!token){ toast('⚠ Informe o GitHub Token'); return; }
+  localStorage.setItem('gh_pub_token',token);
+
+  const btn=document.getElementById('confirmPubBtn');
+  btn.textContent='⏳ Publicando...'; btn.disabled=true;
+
+  const b=getB();
   const data={
     boardName:b.name,
     exportedAt:new Date().toLocaleString('pt-BR'),
@@ -1207,12 +1228,72 @@ function publishProject(){
     pcbImg:b.pcbImgData
   };
   const html=generateViewerHTML(data);
-  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='pcba_report_'+b.name.replace(/\s+/g,'_')+'.html';
-  a.click();
-  toast('📤 Relatório publicado! Compartilhe o arquivo HTML com o time.');
+
+  try{
+    await pushReportToGitHub(html,token);
+  }catch(err){
+    toast('❌ '+err.message);
+    btn.textContent='📤 PUBLICAR'; btn.disabled=false;
+  }
+}
+
+function encodeToBase64(str){
+  const bytes=new TextEncoder().encode(str);
+  const chunks=[];
+  for(let i=0;i<bytes.length;i+=8192){
+    chunks.push(String.fromCharCode(...bytes.subarray(i,Math.min(i+8192,bytes.length))));
+  }
+  return btoa(chunks.join(''));
+}
+
+async function pushReportToGitHub(html,token){
+  const repo='bravixlab/Pcba_heatmap';
+  const filename='report.html';
+  const apiUrl='https://api.github.com/repos/'+repo+'/contents/'+filename;
+  const headers={'Authorization':'token '+token,'Content-Type':'application/json'};
+
+  // Get current SHA if file exists (needed for update)
+  let sha=null;
+  try{
+    const r=await fetch(apiUrl,{headers});
+    if(r.ok){ const d=await r.json(); sha=d.sha; }
+  }catch(e){}
+
+  const body={
+    message:'Relatório PCBA publicado em '+new Date().toLocaleString('pt-BR'),
+    content:encodeToBase64(html),
+    branch:'main'
+  };
+  if(sha) body.sha=sha;
+
+  const res=await fetch(apiUrl,{method:'PUT',headers,body:JSON.stringify(body)});
+  const result=await res.json();
+
+  if(!res.ok){
+    if((result.message||'').includes('Bad credentials')){
+      localStorage.removeItem('gh_pub_token');
+      throw new Error('Token inválido. Gere um novo e tente novamente.');
+    }
+    throw new Error(result.message||'Falha ao publicar. Tente novamente.');
+  }
+
+  closePubModal();
+  const url='https://bravixlab.github.io/Pcba_heatmap/'+filename;
+  showPublishSuccess(url);
+}
+
+function showPublishSuccess(url){
+  document.getElementById('successUrl').textContent=url;
+  document.getElementById('successModal').classList.add('show');
+}
+
+function closeSuccessModal(){
+  document.getElementById('successModal').classList.remove('show');
+}
+
+function copyReportUrl(){
+  const url=document.getElementById('successUrl').textContent;
+  navigator.clipboard.writeText(url).then(()=>toast('✅ Link copiado!'));
 }
 
 function generateViewerHTML(data){
